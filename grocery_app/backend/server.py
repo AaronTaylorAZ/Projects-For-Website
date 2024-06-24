@@ -3,8 +3,17 @@ import products_dao
 import orders_dao
 import uom_dao
 from sql_connection import get_sql_connection
+import streamlit as st # type: ignore
 
 app = Flask(__name__)
+
+def main():
+    # Read the contents of your HTML file
+    with open('index.html', 'r') as f:
+        html_content = f.read()
+
+    # Display the HTML content within Streamlit
+    st.components.v1.html(html_content)
 
 connection = get_sql_connection()
 
@@ -62,3 +71,4 @@ def delete_product():
 if __name__ == '__main__':
     print("Starting Python Flask Server For Grocery Store Management System")
     app.run(port=5000)
+    main()
