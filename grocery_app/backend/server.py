@@ -19,6 +19,9 @@ def index():
 def manage_product():
     return render_template('manage-product.html')
 
+@app.route('/order.html')
+def order():
+    return render_template('order.html')
 
 @app.route('/getAllOrders', methods=['GET'])
 def get_all_orders():
