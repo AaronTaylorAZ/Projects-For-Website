@@ -1,21 +1,24 @@
-from flask import Flask, json, request, jsonify
+from flask import Flask, json, request, jsonify, render_template
 import products_dao
 import orders_dao
 import uom_dao
 from sql_connection import get_sql_connection
-import streamlit as st # type: ignore
+from flask_cors import CORS
 
-app = Flask(__name__)
-
-def main():
-    # Read the contents of your HTML file
-    with open('index.html', 'r') as f:
-        html_content = f.read()
-
-    # Display the HTML content within Streamlit
-    st.components.v1.html(html_content)
+app = Flask(__name__, static_url_path='/static', template_folder='templates')
+CORS(app)
 
 connection = get_sql_connection()
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/manage-product.html')
+def manage_product():
+    return render_template('manage-product.html')
+
 
 @app.route('/getAllOrders', methods=['GET'])
 def get_all_orders():
@@ -26,13 +29,24 @@ def get_all_orders():
 
 @app.route('/insertOrder', methods=['POST'])
 def insert_order():
-    request_payload = json.loads(request.form['data'])
+    request_payload = request.get_json()
+
+    if not request_payload:
+        return jsonify({'error': 'No JSON data received'}), 400
+
+    customer_name = request_payload.get('customer_name')
+    grand_total = request_payload.get('grand_total')
+    order_details = request_payload.get('order_details')
+
+    # Validate and process request_payload data as needed
+    # Example validation:
+    if not customer_name or not grand_total or not order_details:
+        return jsonify({'error': 'Missing required data fields'}), 400
+
+    # Insert into database using your DAO function
     order_id = orders_dao.insert_order(connection, request_payload)
-    response = jsonify({
-        'order_id': order_id
-    })
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
+
+    return jsonify({'order_id': order_id}), 200
 
 @app.route('/getProducts', methods=['GET'])
 def get_products():
@@ -71,4 +85,3 @@ def delete_product():
 if __name__ == '__main__':
     print("Starting Python Flask Server For Grocery Store Management System")
     app.run(port=5000)
-    main()

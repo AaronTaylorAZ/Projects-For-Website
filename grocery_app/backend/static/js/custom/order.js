@@ -41,44 +41,39 @@ $(document).on("change", ".product-qty", function (e){
     calculateValue();
 });
 
-$("#saveOrder").on("click", function(){
-    var formData = $("form").serializeArray();
+$("#saveOrder").on("click", function () {
     var requestPayload = {
-        customer_name: null,
-        total: null,
+        customer_name: $('#customerName').val(),
+        grand_total: $('#product_grand_total').val(),
         order_details: []
     };
-    var orderDetails = [];
-    for(var i=0;i<formData.length;++i) {
-        var element = formData[i];
-        var lastElement = null;
 
-        switch(element.name) {
-            case 'customerName':
-                requestPayload.customer_name = element.value;
-                break;
-            case 'product_grand_total':
-                requestPayload.grand_total = element.value;
-                break;
-            case 'product':
-                requestPayload.order_Details.push({
-                    product_id: element.value,
-                    quantity: null,
-                    total_price: null
-                });                
-                break;
-            case 'qty':
-                lastElement = requestPayload.order_details[requestPayload.order_details.length-1];
-                lastElement.quantity = element.value
-                break;
-            case 'item_total':
-                lastElement = requestPayload.order_details[requestPayload.order_details.length-1];
-                lastElement.total_price = element.value
-                break;
+    $('.product-box-extra .row').each(function () {
+        var product_id = $(this).find('.cart-product').val();
+        var quantity = $(this).find('.product-qty').val();
+        var total_price = $(this).find('.product-total').text();
+
+        requestPayload.order_details.push({
+            product_id: product_id,
+            quantity: quantity,
+            total_price: total_price
+        });
+    });
+
+    $.ajax({
+        url: orderSaveApiUrl,
+        type: 'POST',
+        contentType: 'application/json', // Ensure content type is JSON
+        data: JSON.stringify(requestPayload), // Convert payload to JSON string
+        success: function (response) {
+            console.log('Order saved successfully. Response:', response);
+            alert('Order saved successfully. Order ID: ' + response.order_id);
+            // Additional success handling goes here
+        },
+        error: function (xhr, status, error) {
+            console.error('Error saving order:', error);
+            alert('Error saving order. Please try again.');
+            // Additional error handling goes here
         }
-
-    }
-    callApi("POST", orderSaveApiUrl, {
-        'data': JSON.stringify(requestPayload)
     });
 });
